@@ -20,17 +20,16 @@
     android:layout_weight="1">
     <TableLayout 
         android:id="@+id/MineField"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="bottom"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:shrinkColumns="*"
         android:stretchColumns="*"
-        android:layout_span="3"
-        android:padding="3dp">
+        android:padding="0dp">
     </TableLayout>
     
 </TableRow>
 <TableRow
     android:layout_width="fill_parent"
     android:layout_height="60dp"
-    android:background="#555555"></TableRow>"
+    android:background="#555555"></TableRow>
 </LinearLayout>     
