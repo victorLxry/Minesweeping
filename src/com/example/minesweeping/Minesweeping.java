@@ -21,7 +21,7 @@ import android.widget.Toast;
 public class Minesweeping extends Activity {
 	private TableLayout mineField;
     public Button blocks,temp;
-	int screenWidth;
+	int screenWidth,rows,cols,startrow,startcol;
 	public class mineBlocks{
 		int content;
 		int status;
@@ -42,8 +42,12 @@ public class Minesweeping extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
-		mineBlocks =new mineBlocks[10][10];
-		mineBlocks = getMineBlocks(10,10);
+		rows=10;
+		cols=10;
+		startrow=50;
+		startcol=50;
+		mineBlocks =new mineBlocks[100][100];
+		mineBlocks = getMineBlocks(100,100);
 		screenWidth = getDisplayMertics().widthPixels;
 		mineField=(TableLayout)findViewById(R.id.MineField);
 	    creatMine(10,mineField);
@@ -65,33 +69,44 @@ public class Minesweeping extends Activity {
 				blocks.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT,screenWidth/rownumber));
 				blocks.setBackgroundResource(R.drawable.minebuttongreen);
 				blocks.setOnTouchListener(new View.OnTouchListener() {
-					float positionx,positiony,distancex,distancey,positionxFinal,positionyFinal;
+					float positionxBegin,positionyBegin,positionx,positiony,distancex,distancey,positionxFinal,positionyFinal;
 					@Override
 					public boolean onTouch(View v, MotionEvent event) {
 						// TODO Auto-generated method stub
 						switch(event.getAction()){
 						case MotionEvent.ACTION_DOWN:
-							positionx = event.getX();
-							positiony = event.getY();
+							positionxBegin = event.getX();
+							positionyBegin = event.getY();
+							positionx = positionxBegin;
+							positiony = positionyBegin;
 						    break;
 						case MotionEvent.ACTION_MOVE:
 							distancex = event.getX() - positionx;
 							distancey = event.getY() - positiony;
+							boolean refresh = false;
 							if(distancex>screenWidth/10){
 								System.out.println("one x move");
 								positionx = positionx + screenWidth/10;
+								startcol--;
+								refresh = true;
 							}
 							if(distancey>screenWidth/10){
 								System.out.println("one y move");
 								positiony = positiony + screenWidth/10;
+								startrow--;
+								refresh = true;
 							}
+							if(refresh)refreshMineField(startrow,startcol);
 							break;
 						case MotionEvent.ACTION_UP:
 							positionxFinal = event.getX();
 							positionyFinal = event.getY();
-							if((Math.abs(positionxFinal-positionx)<(screenWidth/20))&(Math.abs(positionyFinal-positiony)<(screenWidth/20))){
-								temp = (Button)findViewById(v.getId());
-								temp.setText("1");
+							System.out.println(positionxFinal+";"+positionx+";"+positionyFinal+";"+positiony);
+							if((Math.abs(positionxFinal-positionxBegin)<(screenWidth/20))&(Math.abs(positionyFinal-positionyBegin)<(screenWidth/20))){
+								int idTemp = v.getId();
+								temp = (Button)findViewById(idTemp);
+								temp.setText(""+mineBlocks[startrow+idTemp/10][startcol+idTemp%10].content);
+								mineBlocks[startrow+idTemp/10][startcol+idTemp%10].status = 1;
 							}
 							break;
 						default:
@@ -107,11 +122,13 @@ public class Minesweeping extends Activity {
 			mineField.addView(tableRow,new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT,TableLayout.LayoutParams.FILL_PARENT));
 		}
 	}
-	public void refreshMineField(){
+	public void refreshMineField(int startrow,int startcol){
 		for(int row=0;row<10;row++)
 			for(int col=0;col<10;col++){
 			Button blocks=(Button)findViewById((row*10)+col);
-			blocks.setText("");
+			if(mineBlocks[row+startrow][col+startcol].status == 1)
+			blocks.setText(""+mineBlocks[row+startrow][col+startcol].content);
+			else blocks.setText("");
 			}
 	}
     public mineBlocks[][] getMineBlocks(int row,int col){
