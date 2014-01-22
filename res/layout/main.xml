@@ -9,13 +9,14 @@
     android:layout_height="40dp"
     android:background="#aa0000">
 </TableRow>
-<TableRow
+<ImageView
     android:id="@+id/map"
     android:layout_width="fill_parent"
     android:layout_height="0dp"
     android:layout_weight="1"
-    android:background="#0000aa">
-</TableRow>
+    android:scaleType="center"
+    android:background="#121212">
+</ImageView>
 <TableRow 
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">

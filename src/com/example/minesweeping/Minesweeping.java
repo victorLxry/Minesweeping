@@ -4,8 +4,16 @@
  ********************************/
 package com.example.minesweeping;
 
+import java.io.IOException;
+
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -13,6 +21,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.Toast;
@@ -21,6 +30,7 @@ import android.widget.Toast;
 public class Minesweeping extends Activity {
 	private TableLayout mineField;
     public Button blocks,temp;
+    BitmapRegionDecoder newins = null;
 	int screenWidth,rows,cols,startrow,startcol;
 	public class mineBlocks{
 		int content;
@@ -51,6 +61,28 @@ public class Minesweeping extends Activity {
 		screenWidth = getDisplayMertics().widthPixels;
 		mineField=(TableLayout)findViewById(R.id.MineField);
 	    creatMine(10,mineField);
+	    ImageView iv = (ImageView)findViewById(R.id.map);
+	    Rect rect = new Rect(1060,180,1538,361);
+	    try {
+			newins = BitmapRegionDecoder.newInstance(Environment.getExternalStorageDirectory().getPath()+"/minesweeping/mapbig.png",false);
+			Bitmap bitmaptemp=newins.decodeRegion(rect,null);
+			iv.setImageBitmap(bitmaptemp);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("1");
+			e.printStackTrace();
+		}
+		iv.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Rect rect = new Rect(660,180,1138,361);
+				Bitmap bitmap = newins.decodeRegion(rect, null);
+				ImageView iv1 = (ImageView)findViewById(R.id.map);
+				iv1.setImageBitmap(bitmap);
+			}
+		});
 	}
 	
 	public DisplayMetrics getDisplayMertics(){
@@ -84,16 +116,26 @@ public class Minesweeping extends Activity {
 							distancex = event.getX() - positionx;
 							distancey = event.getY() - positiony;
 							boolean refresh = false;
-							if(distancex>screenWidth/10){
-								System.out.println("one x move");
-								positionx = positionx + screenWidth/10;
-								startcol--;
+							if(Math.abs(distancex)>screenWidth/10){
+								if(distancex>0){
+									positionx = positionx + screenWidth/10;
+									if(startcol>0)startcol--;
+								}
+								else{
+									positionx = positionx - screenWidth/10;
+									if(startcol<90)startcol++;
+								}
 								refresh = true;
 							}
-							if(distancey>screenWidth/10){
-								System.out.println("one y move");
-								positiony = positiony + screenWidth/10;
-								startrow--;
+							if(Math.abs(distancey)>screenWidth/10){
+								if(distancey>0){
+									positiony = positiony + screenWidth/10;
+									if(startrow>0)startrow--;
+								}
+								else{
+									positiony = positiony - screenWidth/10;
+									if(startrow<90)startrow++;
+								}
 								refresh = true;
 							}
 							if(refresh)refreshMineField(startrow,startcol);
