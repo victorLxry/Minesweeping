@@ -14,10 +14,13 @@ import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -32,6 +35,7 @@ public class Minesweeping extends Activity {
     public Button blocks,temp;
     BitmapRegionDecoder newins = null;
 	int screenWidth,rows,cols,startrow,startcol;
+	Rect rect;
 	public class mineBlocks{
 		int content;
 		int status;
@@ -59,12 +63,15 @@ public class Minesweeping extends Activity {
 		mineBlocks =new mineBlocks[100][100];
 		mineBlocks = getMineBlocks(100,100);
 		screenWidth = getDisplayMertics().widthPixels;
+		float density = getDisplayMertics().density;
 		mineField=(TableLayout)findViewById(R.id.MineField);
 	    creatMine(10,mineField);
+	    TableRow dock = (TableRow)findViewById(R.id.dock);
 	    ImageView iv = (ImageView)findViewById(R.id.map);
-	    Rect rect = new Rect(1060,180,1538,361);
+	    int a = (getDisplayMertics().heightPixels-screenWidth-(int)(60*density+0.5f));
+	    rect = new Rect(0,0,a,a);
 	    try {
-			newins = BitmapRegionDecoder.newInstance(Environment.getExternalStorageDirectory().getPath()+"/minesweeping/mapbig.png",false);
+			newins = BitmapRegionDecoder.newInstance(Environment.getExternalStorageDirectory().getPath()+"/minesweeping/mapbig.jpg",false);
 			Bitmap bitmaptemp=newins.decodeRegion(rect,null);
 			iv.setImageBitmap(bitmaptemp);
 			
@@ -73,16 +80,30 @@ public class Minesweeping extends Activity {
 			System.out.println("1");
 			e.printStackTrace();
 		}
-		iv.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				Rect rect = new Rect(660,180,1138,361);
-				Bitmap bitmap = newins.decodeRegion(rect, null);
-				ImageView iv1 = (ImageView)findViewById(R.id.map);
-				iv1.setImageBitmap(bitmap);
+       iv.setOnTouchListener(new View.OnTouchListener() {
+    	   float mapstartx,mapstarty,mapnowx,mapnowy;
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			// TODO Auto-generated method stub
+			switch(event.getAction()){
+			case MotionEvent.ACTION_DOWN:
+				mapstartx = event.getX();
+				mapstarty = event.getY();
+				break;
+			case MotionEvent.ACTION_MOVE:
+				mapnowx = event.getX();
+				mapnowy = event.getY();
+				rect = refreshMap(rect,-(int)(mapnowx-mapstartx)/2,-(int)(mapnowy-mapstarty)/2);
+				System.out.println(rect.left+";"+rect.top+";"+rect.right+";"+rect.bottom);
+				mapstartx = mapnowx;
+				mapstarty = mapnowy;
+				break;
+			default:
+				break;
 			}
-		});
+			return true;
+		}
+	});
 	}
 	
 	public DisplayMetrics getDisplayMertics(){
@@ -181,6 +202,13 @@ public class Minesweeping extends Activity {
     		}
     	}
     	return tempMineBlocks;
+    }
+    public Rect refreshMap(Rect rect,int moveX,int moveY){
+    	ImageView ivtemp = (ImageView)findViewById(R.id.map);
+    	rect.offset(moveX, moveY);
+    	Bitmap bitMapTemp = newins.decodeRegion(rect, null);
+    	ivtemp.setImageBitmap(bitMapTemp);
+    	return rect;
     }
 	}
     
