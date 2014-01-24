@@ -6,11 +6,15 @@ package com.example.minesweeping;
 
 import java.io.IOException;
 
+import android.R.color;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.graphics.BitmapRegionDecoder;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
@@ -34,7 +38,7 @@ public class Minesweeping extends Activity {
 	private TableLayout mineField;
     public Button blocks,temp;
     BitmapRegionDecoder newins = null;
-	int screenWidth,rows,cols,startrow,startcol;
+	int screenWidth,rows,cols,startrow,startcol,a;
 	Rect rect;
 	public class mineBlocks{
 		int content;
@@ -68,12 +72,12 @@ public class Minesweeping extends Activity {
 	    creatMine(10,mineField);
 	    TableRow dock = (TableRow)findViewById(R.id.dock);
 	    ImageView iv = (ImageView)findViewById(R.id.map);
-	    int a = (getDisplayMertics().heightPixels-screenWidth-(int)(60*density+0.5f));
-	    rect = new Rect(0,0,a,a);
+	    a = (getDisplayMertics().heightPixels-screenWidth-(int)(60*density+0.5f));
+	    rect = new Rect(0,0,50,50);
 	    try {
 			newins = BitmapRegionDecoder.newInstance(Environment.getExternalStorageDirectory().getPath()+"/minesweeping/mapbig.jpg",false);
 			Bitmap bitmaptemp=newins.decodeRegion(rect,null);
-			iv.setImageBitmap(bitmaptemp);
+			iv.setImageBitmap(Bitmap.createScaledBitmap(bitmaptemp, a, a, false));
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -93,8 +97,7 @@ public class Minesweeping extends Activity {
 			case MotionEvent.ACTION_MOVE:
 				mapnowx = event.getX();
 				mapnowy = event.getY();
-				rect = refreshMap(rect,-(int)(mapnowx-mapstartx)/2,-(int)(mapnowy-mapstarty)/2);
-				System.out.println(rect.left+";"+rect.top+";"+rect.right+";"+rect.bottom);
+				rect = refreshMap(rect,-(int)(mapnowx-mapstartx)/(a/100),-(int)(mapnowy-mapstarty)/(a/100));
 				mapstartx = mapnowx;
 				mapstarty = mapnowy;
 				break;
@@ -159,12 +162,14 @@ public class Minesweeping extends Activity {
 								}
 								refresh = true;
 							}
-							if(refresh)refreshMineField(startrow,startcol);
+							if(refresh){
+								refreshMineField(startrow,startcol);
+								rect = refreshMap(rect,1,1);
+							}
 							break;
 						case MotionEvent.ACTION_UP:
 							positionxFinal = event.getX();
 							positionyFinal = event.getY();
-							System.out.println(positionxFinal+";"+positionx+";"+positionyFinal+";"+positiony);
 							if((Math.abs(positionxFinal-positionxBegin)<(screenWidth/20))&(Math.abs(positionyFinal-positionyBegin)<(screenWidth/20))){
 								int idTemp = v.getId();
 								temp = (Button)findViewById(idTemp);
@@ -206,8 +211,22 @@ public class Minesweeping extends Activity {
     public Rect refreshMap(Rect rect,int moveX,int moveY){
     	ImageView ivtemp = (ImageView)findViewById(R.id.map);
     	rect.offset(moveX, moveY);
-    	Bitmap bitMapTemp = newins.decodeRegion(rect, null);
-    	ivtemp.setImageBitmap(bitMapTemp);
+    	if(rect.left<0){
+    		rect.left = 0;
+    		rect.right = 50;
+    	}
+    	if(rect.top<0){
+    		rect.top = 0;
+    		rect.bottom = 50;
+    	}
+    	Bitmap bitMapTemp = newins.decodeRegion(rect, null).copy(Bitmap.Config.ARGB_8888,true);
+    	Canvas canvas = new Canvas(bitMapTemp);
+    	Paint paint = new Paint();
+    	paint.setARGB(125, 255, 255, 0);
+    	paint.setStyle(Style.STROKE);
+		canvas.drawRect(20, 20, 30, 30, paint);
+    	ivtemp.setImageBitmap(Bitmap.createScaledBitmap(bitMapTemp, a, a, false));
+    	//ivtemp.draw(canvas);
     	return rect;
     }
 	}
